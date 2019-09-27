@@ -1,0 +1,174 @@
+
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(13,12,7,2,3,4);
+//motor A
+int PWMA=7;
+int INPA1=5;
+int INPA2=6;
+//motor B
+int PWMB=11;
+int INPB1=9;
+int INPB2=10;
+//sensors
+int Rightsensor=A0;
+int Middlesensor=A1;
+int Leftsensor=A2;
+int valueR ;
+int valueM ;
+int valueL ;
+char letter;
+
+void setup() {
+ pinMode(PWMA,OUTPUT);
+ pinMode(INPA1,OUTPUT);
+ pinMode(INPA2,OUTPUT);
+ pinMode(PWMA,OUTPUT);
+ pinMode(INPB1,OUTPUT);
+ pinMode(INPB2,OUTPUT);
+ pinMode(Rightsensor,INPUT);
+ pinMode(Middlesensor,INPUT);
+ pinMode(Leftsensor,INPUT);
+ lcd.begin(16,2);
+ lcd.setCursor(2,0);
+ lcd.print("Robotronics");
+ lcd.setCursor(5,1);
+ lcd.print("START");
+ delay(1000);
+ // to delete "START"
+ lcd.setCursor(5,1);
+ lcd.print("     ");
+ letter = 'Z' ;
+}
+
+void loop() {
+ AAA:
+ valueR = digitalRead(Rightsensor);
+ valueM = digitalRead(Middlesensor);
+ valueL = digitalRead(Leftsensor);
+ analogWrite(PWMA,120);//motor speed
+ analogWrite(PWMB,120);//motor speed
+//Motion Cases
+if (valueM==HIGH && valueR==LOW  && valueL==LOW)
+Forward();
+if (valueM==HIGH && valueR==HIGH && valueL==LOW)
+Right();
+if (valueM==HIGH && valueR==LOW  && valueL==HIGH)
+Left();
+if (valueM==LOW  && valueR==LOW  && valueL==LOW)
+Stop();
+
+if (valueM==HIGH && valueR==HIGH && valueL==HIGH && letter=='Z')
+{
+  letter='A'; // display letter A
+  lcdA();
+  Forward();
+  goto AAA;
+  }
+  
+  if (valueM==HIGH && valueR==HIGH && valueL==HIGH && letter=='A')
+  {
+    letter='B'; // display letter B
+    lcdB();
+    Forward();
+    goto AAA;
+    }
+     if (valueM==HIGH && valueR==HIGH && valueL==HIGH && letter=='B')
+  {
+    letter='C'; // display letter C
+    lcdC();
+    Forward();
+    goto AAA;
+    }
+     if (valueM==HIGH && valueR==HIGH && valueL==HIGH && letter=='C')
+  {
+    letter='D'; // display letter D
+    lcdD();
+    Forward();
+    goto AAA;
+  }
+}
+void Forward()
+{
+ digitalWrite(INPA1,HIGH);
+ digitalWrite(INPA2,LOW);  
+ digitalWrite(INPB1,HIGH); 
+ digitalWrite(INPB2,LOW);
+ lcd.setCursor(5,1);
+ lcd.print("        "); 
+ lcd.setCursor(5,1);
+ lcd.print("Forward");
+  }
+  void Right()
+{
+ digitalWrite(INPA1,HIGH);
+ digitalWrite(INPA2,LOW);  
+ digitalWrite(INPB1,LOW); 
+ digitalWrite(INPB2,HIGH);
+ lcd.setCursor(5,1);
+ lcd.print("        ");
+ lcd.setCursor(5,1);
+ lcd.print("RIGHT");
+  }
+   void Left()
+{
+ digitalWrite(INPA1,LOW);
+ digitalWrite(INPA2,HIGH);  
+ digitalWrite(INPB1,HIGH); 
+ digitalWrite(INPB2,LOW); 
+ lcd.setCursor(5,1);
+ lcd.print("        ");
+ lcd.setCursor(5,1);
+ lcd.print("LEFT");
+  }
+   void Stop()
+{
+ digitalWrite(INPA1,LOW);
+ digitalWrite(INPA2,LOW);  
+ digitalWrite(INPB1,LOW); 
+ digitalWrite(INPB2,LOW); 
+ lcd.setCursor(5,1);
+ lcd.print("        ");
+ lcd.setCursor(6,2);
+ lcd.print("END");
+  }
+  void lcdA()
+  {
+    lcd.setCursor(2,1);
+    lcd.print(" ");
+    lcd.setCursor(2,1);
+    lcd.print("A");
+    /*delay(350);
+    lcd.setCursor(2,1);
+    lcd.print(" ");*/
+    }
+     void lcdB()
+  {
+    lcd.setCursor(2,1);
+    lcd.print(" ");
+    lcd.setCursor(2,1);
+    lcd.print("B");
+    /*delay(350);
+    lcd.setCursor(2,1);
+    lcd.print(" ");*/
+    }
+     void lcdC()
+  {
+    lcd.setCursor(2,1);
+    lcd.print(" ");
+    lcd.setCursor(2,1);
+    lcd.print("C");
+    /*delay(350);
+    lcd.setCursor(2,1);
+    lcd.print(" ");*/
+    }
+     void lcdD()
+  {
+    lcd.setCursor(2,1);
+    lcd.print(" ");
+    lcd.setCursor(2,1);
+    lcd.print("D");
+    /*delay(350);
+    lcd.setCursor(2,1);
+    lcd.print(" ");*/
+    }
+  
