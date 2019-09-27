@@ -1,0 +1,273 @@
+#include <SoftwareSerial.h>
+#include <Ultrasonic.h>
+#include <Servo.h>
+SoftwareSerial bluetooth(A0,A1); //(RX,TX)        
+Ultrasonic ultrasonic(5,3);   //(TRIG,ECHO)
+Servo servo1 ;
+// pins
+int flame = A2 ;
+int gas = 4 ;
+int temperature = A4;
+int relay = 7 ;
+int buzzer1 = A3 ;
+int buzzer2 = 2 ;
+int led = A5 ;
+//DC motor 1
+int PWM1 = 10;
+int IN1 = 8;
+int IN2 = 9;
+// DC motor 2
+int PWM2 = 11;
+int IN3 = 12;
+int IN4 = 13;
+//variables
+char Rdata ;
+int dis = 0 ;
+int temp,volt ;
+#define servoc 10 
+#define servoo 90 
+void setup() {
+ servo1.attach(6);
+ Serial.begin(9600);
+ bluetooth.begin(9600);
+ //DC MOTORS PINS
+ //DC MOTOR 1
+ pinMode(PWM1,OUTPUT);
+ pinMode(IN1,OUTPUT);
+ pinMode(IN2,OUTPUT);
+ //DC MOTOR 2
+ pinMode(PWM2,OUTPUT);
+ pinMode(IN3,OUTPUT);
+ pinMode(IN4,OUTPUT);
+ // FLAME SENSOR
+ pinMode(flame,INPUT);
+ // GAS SENSOR
+ pinMode(gas,INPUT);
+ //TEMPERATURE SENSOR
+ pinMode(temperature,INPUT);
+ // BUZZER
+  pinMode(buzzer1,OUTPUT);
+  pinMode(buzzer2,OUTPUT);
+  // red led
+  pinMode(led,OUTPUT);
+  // relay
+  pinMode(relay,OUTPUT);
+  // initial value of servo
+  //servo1.write(servoc);
+}
+
+void loop() { 
+  volt = analogRead(temperature);
+  temp = ((volt*500.0)/1023.0) ; 
+  dis = ultrasonic.distanceRead(); //TO MEASURE THE DISTNCE
+  
+  if(digitalRead(flame) == LOW && digitalRead(gas) == LOW){
+  flam();
+ }
+ else if(digitalRead(flame) == HIGH && digitalRead(gas) == HIGH){
+  gass();
+ }
+else if(digitalRead(flame) == LOW && digitalRead(gas) == HIGH){
+  flag();
+  }
+else if(digitalRead(flame) == HIGH && digitalRead(gas) == LOW){
+ stopfg();
+ if(bluetooth.available()){
+   Rdata = bluetooth.read();
+   switch (Rdata){
+    case 'o':{ //open the door
+    servo1.write(servoo);
+    //bluetooth.println("door is opened");
+     break ;
+     }
+    case 'c':{ //close the door
+    servo1.write(servoc);
+    //bluetooth.println("door is closed");
+    break ;
+        }
+    case 's':{ 
+    //switch on the fan  
+    analogWrite(PWM1,200);
+    digitalWrite(IN1,HIGH);
+    digitalWrite(IN2,LOW);
+    //bluetooth.println("fan is turned on");
+    break ;
+    }
+    case 'f':{
+    //switch off the fan  
+    analogWrite(PWM1,0);
+    digitalWrite(IN1,LOW);
+    digitalWrite(IN2,LOW);
+    //bluetooth.println("fan is turned off");
+    break ;
+    }
+    case 'm':{ //air suction is turned on
+    analogWrite(PWM2,255);  
+    digitalWrite(IN3,LOW);
+    digitalWrite(IN4,HIGH);
+    //bluetooth.println("air suction is turned on");
+    break ;
+    }
+    case 'z':{ //air suction is turned off
+    analogWrite(PWM2,0);  
+    digitalWrite(IN3,LOW);
+    digitalWrite(IN4,LOW);
+    //bluetooth.println("air suction is turned off");
+    break ;
+    }
+    case 'l':{ //lamp is on
+    digitalWrite(relay,LOW);
+    //bluetooth.println("lamp is turned on");
+    break ;
+    }
+    case 'p':{ //lamp is off
+    digitalWrite(relay,HIGH);
+    //bluetooth.println("lamp is turned off");
+    break ;
+    }
+  }
+ }
+
+ if(dis <15){
+ dis1();
+ }
+ if(dis > 15){
+ dis2();
+ }
+
+ if(temp <=18 && digitalRead(flame) == HIGH && digitalRead(gas) == LOW){
+  //bluetooth.println(temp);
+  temp1();
+  }
+ if(temp >18 && temp<=25 && digitalRead(flame) == HIGH && digitalRead(gas) == LOW){
+  //bluetooth.println(temp);
+  temp2();
+  }
+ if(temp >25 && temp<=35 && digitalRead(flame) == HIGH && digitalRead(gas) == LOW){
+  //bluetooth.println(temp);
+  temp3();
+ }      
+ if(temp >35 && digitalRead(flame) == HIGH && digitalRead(gas) == LOW){
+  //bluetooth.println(temp);
+  temp4();
+ }
+} 
+ }
+// fuctions
+ void flam(){
+ //bluetooth.println("there is a fire");
+ digitalWrite(buzzer2,LOW);
+ //digitalWrite(led,HIGH);
+ tone(buzzer1,700); // Send 700Hz sound signal...
+ delay(500);        // ...for 0.5 sec
+ noTone(buzzer1);     // Stop sound...
+ delay(500);        // ...for 0.5 sec
+ servo1.write(servoo);
+ // switch on the fan in the mode of air sunction
+ analogWrite(PWM1,255);
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,HIGH);
+ // switch on air sunction
+ analogWrite(PWM2,255);
+ digitalWrite(IN3,LOW);
+ digitalWrite(IN4,HIGH); 
+ }
+
+ void gass(){
+ //bluetooth.println("there is a gas");
+ digitalWrite(buzzer1,LOW);
+ //digitalWrite(led,HIGH);
+ tone(buzzer2, 1300); // Send 1.3KHz sound signal...
+ delay(500);        // ...for 0.5 sec
+ noTone(buzzer2);     // Stop sound...
+ delay(500);        // ...for 0.5 sec
+ servo1.write(servoo);
+ // switch on the fan in the mode of air sunction
+ analogWrite(PWM1,255);
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,HIGH);
+ // switch on air sunction
+ analogWrite(PWM2,255);
+ digitalWrite(IN3,LOW);
+ digitalWrite(IN4,HIGH);
+}
+
+void flag(){
+/* bluetooth.println("there is a fire");
+ bluetooth.println("there is gas");*/
+ //digitalWrite(led,HIGH);
+ tone(buzzer1,700); // Send 700Hz sound signal...
+ delay(500);        // ...for 0.5 sec
+ noTone(buzzer1);     // Stop sound...
+ delay(500);        // ...for 0.5 sec
+ tone(buzzer2,1300); // Send 1.3KHz sound signal...
+ delay(500);        // ...for 0.5 sec
+ noTone(buzzer2);     // Stop sound...
+ delay(500);        // ...for 0.5 sec
+ servo1.write(servoo);
+ // switch on the fan in the mode of air sunction
+ analogWrite(PWM1,255);
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,HIGH);
+ // switch on air sunction
+ analogWrite(PWM2,255);
+ digitalWrite(IN3,LOW);
+ digitalWrite(IN4,HIGH); 
+  }
+
+void stopfg(){
+ //bluetooth.println("there is no fire nor gas");
+ Serial.println("there is no fire nor gas");
+ digitalWrite(buzzer1,LOW);
+ digitalWrite(buzzer2,LOW);
+ // switch off the fan 
+ analogWrite(PWM1,0);
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,LOW);
+ // switch off air sunction
+ analogWrite(PWM2,0);
+ digitalWrite(IN3,LOW);
+ digitalWrite(IN4,LOW); 
+}
+
+void temp1(){
+ //bluetooth.println(temp);
+ analogWrite(PWM1,0);  
+ digitalWrite(IN1,LOW);
+ digitalWrite(IN2,LOW); 
+}
+
+void temp2(){
+ //bluetooth.println(temp);
+ analogWrite(PWM1,110);  
+ digitalWrite(IN1,HIGH);
+ digitalWrite(IN2,LOW);
+}
+
+void temp3(){
+ //bluetooth.println(temp);
+ analogWrite(PWM1,190);  
+ digitalWrite(IN1,HIGH);
+ digitalWrite(IN2,LOW); 
+}
+
+void temp4(){
+ //bluetooth.println(temp);
+ analogWrite(PWM1,255);  
+ digitalWrite(IN1,HIGH);
+ digitalWrite(IN2,LOW); 
+}
+void dis1(){
+//bluetooth.println(dis);
+digitalWrite(led,HIGH);
+/*tone(buzzer1,2000); // Send 2000Hz sound signal...
+ delay(500);        // ...for 0.5 sec
+ noTone(buzzer1);     // Stop sound...
+ delay(500);        // ...for 0.5 sec*/
+//bluetooth.println(" distance is very short");  
+}
+void dis2(){
+//bluetooth.println(dis);
+digitalWrite(led,LOW);
+//bluetooth.println(" distance is  short"); 
+}
